@@ -28,6 +28,16 @@ import {
 } from "@/services/securityService";
 import { logger } from "@/infrastructure/logging/logger";
 
+const isTestEnv =
+  process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID !== undefined;
+
+function debugLog(...args: unknown[]) {
+  if (!isTestEnv) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+
 /**
  * 身份驗證服務（Auth Service）
  * 協調註冊、登入、登出的業務邏輯
@@ -72,7 +82,10 @@ export async function register(
   try {
     // 驗證輸入
     const validation = validateRegistrationData(email, password);
-    if (!validation.valid) {
+    debugLog("註冊驗證結果:", validation);
+
+    if (!validation.success) {
+      debugLog("註冊驗證失敗，錯誤訊息:", validation.errors);
       return {
         success: false,
         error: validation.errors[0] || "註冊資料不正確",
@@ -80,8 +93,11 @@ export async function register(
     }
 
     // 檢查 email 是否已存在
+    debugLog("檢查 email 是否存在:", email);
     const existing = await getUserByEmail(email);
+    debugLog("existing user:", existing);
     if (existing) {
+      debugLog("Email 已存在");
       return {
         success: false,
         error: "Email already exists",
@@ -89,29 +105,41 @@ export async function register(
     }
 
     // 建立使用者
+    debugLog("開始建立使用者");
     const user = await createUser({ email, password });
+    debugLog("使用者建立成功:", { id: user.id, email: user.email });
 
     // 記錄註冊事件
+    debugLog("記錄註冊事件");
     await recordRegistration(user.id, user.email, ipAddress, userAgent);
+    debugLog("註冊事件記錄完成");
 
     // 自動登入：建立會話
+    debugLog("開始建立會話");
     const jwtPayload: JwtPayload = {
       userId: user.id,
       email: user.email,
       role: user.role,
     };
+    debugLog("JWT payload:", jwtPayload);
 
     const session = await createSession(
       { userId: user.id, rememberMe },
       jwtPayload
     );
+    debugLog("會話建立成功:", {
+      token: session.token?.substring(0, 20) + "...",
+      rememberMe: session.rememberMe,
+    });
 
     // 更新最後登入時間
+    debugLog("更新最後登入時間");
     await updateLastLoginAt(user.id);
+    debugLog("最後登入時間更新完成");
 
     logger.info(`User registered and auto-logged in: ${email}`);
 
-    return {
+    const result = {
       success: true,
       user: toPublicInfo(user),
       session: {
@@ -119,7 +147,15 @@ export async function register(
         rememberMe: session.rememberMe,
       },
     };
+    debugLog("Register 函式回傳結果:", {
+      success: result.success,
+      hasSession: !!result.session,
+      hasToken: !!result.session?.token,
+    });
+
+    return result;
   } catch (error: any) {
+    console.error("註冊過程發生錯誤:", error);
     logger.error("Registration error:", error);
     return {
       success: false,
@@ -141,7 +177,7 @@ export async function login(
   try {
     // 驗證輸入
     const validation = validateLoginData(email, password);
-    if (!validation.valid) {
+    if (!validation.success) {
       return {
         success: false,
         error: validation.errors[0] || "登入資料不正確",

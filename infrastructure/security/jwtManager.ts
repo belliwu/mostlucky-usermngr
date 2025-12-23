@@ -58,7 +58,7 @@ export function generateRefreshToken(payload: JwtPayload): string {
  */
 export function verifyToken(token: string): string | object {
   if (!token || token.trim() === "") {
-    return null as any;
+    throw new Error("Invalid token");
   }
 
   try {

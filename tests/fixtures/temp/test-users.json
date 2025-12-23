@@ -1,0 +1,57 @@
+[
+  {
+    "id": "5745d5cc-0390-4603-8fb5-117727167bc1",
+    "email": "concurrent0@example.com",
+    "passwordHash": "$2a$10$n6aLT0vrwXjqGE84uEtpEutU4t6oLzVoTgPIFT2aIpFl0bj/w8XVK",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2025-12-23T14:45:49.509Z",
+    "updatedAt": "2025-12-23T14:45:49.740Z",
+    "failedLoginAttempts": 0,
+    "lastLoginAt": "2025-12-23T14:45:49.735Z"
+  },
+  {
+    "id": "829e1625-8b03-41f2-b3ad-046e88ca966f",
+    "email": "concurrent1@example.com",
+    "passwordHash": "$2a$10$iqjgpJOWSRqIbvFDOwAImORf37.J7nhvbS.Y3cQCotr37gLe7gnhy",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2025-12-23T14:45:49.565Z",
+    "updatedAt": "2025-12-23T14:45:49.742Z",
+    "failedLoginAttempts": 0,
+    "lastLoginAt": "2025-12-23T14:45:49.736Z"
+  },
+  {
+    "id": "d5a02590-c6d2-4a0e-a7de-6dd1c4361ed8",
+    "email": "concurrent2@example.com",
+    "passwordHash": "$2a$10$/nMtJXrsuhHDmq9g8XEs9.d48friW1x95cdUf14lOWxDm3RGAl.Ci",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2025-12-23T14:45:49.619Z",
+    "updatedAt": "2025-12-23T14:45:49.743Z",
+    "failedLoginAttempts": 0,
+    "lastLoginAt": "2025-12-23T14:45:49.739Z"
+  },
+  {
+    "id": "60bb5e82-caf4-4d64-afbb-d52e8a2afbad",
+    "email": "concurrent3@example.com",
+    "passwordHash": "$2a$10$ghsbOg9qHmIRX7npTWOaieIg.u7B1RwjOPryFoSdjZs/8eojM9k9.",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2025-12-23T14:45:49.675Z",
+    "updatedAt": "2025-12-23T14:45:49.744Z",
+    "failedLoginAttempts": 0,
+    "lastLoginAt": "2025-12-23T14:45:49.742Z"
+  },
+  {
+    "id": "1d6dad64-ae75-47ad-bc02-ebb5a7fd56f0",
+    "email": "concurrent4@example.com",
+    "passwordHash": "$2a$10$7TkxVt1qFS2XC8I1a2HPw.ZcvyVZ2.nj4SxYzaAvN1js/XctOeiP.",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2025-12-23T14:45:49.730Z",
+    "updatedAt": "2025-12-23T14:45:49.745Z",
+    "failedLoginAttempts": 0,
+    "lastLoginAt": "2025-12-23T14:45:49.743Z"
+  }
+]

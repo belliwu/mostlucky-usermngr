@@ -7,6 +7,16 @@ export interface ValidationResult {
   errors: string[];
 }
 
+const isTestEnv =
+  process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID !== undefined;
+
+function debugLog(...args: unknown[]) {
+  if (!isTestEnv) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+}
+
 /**
  * Email 格式驗證
  */
@@ -44,9 +54,17 @@ export function validatePassword(
 ): ValidationResult {
   const errors: string[] = [];
 
-  if (!password || typeof password !== "string") {
+  if (
+    password === null ||
+    password === undefined ||
+    typeof password !== "string"
+  ) {
     errors.push("密碼不能為空");
     return { success: false, errors };
+  }
+
+  if (password.trim() === "") {
+    errors.push("密碼不能為空");
   }
 
   if (password.length < 8) {
@@ -85,20 +103,33 @@ export function validateRegistrationData(
   email: string,
   password: string
 ): ValidationResult {
+  debugLog("validateRegistrationData 輸入:", {
+    email,
+    passwordLength: password?.length,
+  });
+
   const errors: string[] = [];
 
   const emailValidation = validateEmail(email);
+  debugLog("Email 驗證結果:", emailValidation);
+
   if (!emailValidation.success) {
     errors.push(...emailValidation.errors);
   }
 
   const passwordValidation = validatePassword(password);
+  debugLog("Password 驗證結果:", passwordValidation);
+
   if (!passwordValidation.success) {
     errors.push(...passwordValidation.errors);
   }
 
-  return {
+  const result = {
     success: errors.length === 0,
     errors,
   };
+
+  debugLog("validateRegistrationData 回傳結果:", result);
+
+  return result;
 }

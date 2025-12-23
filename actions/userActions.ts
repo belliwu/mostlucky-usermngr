@@ -8,7 +8,7 @@ import { getUserInfo } from "@/services/userService";
  * Server Actions for User Operations
  */
 
-const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "auth_session";
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "session";
 
 export interface UserInfoResult {
   success: boolean;

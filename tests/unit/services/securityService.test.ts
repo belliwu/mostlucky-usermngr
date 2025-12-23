@@ -29,33 +29,35 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 0,
-        lastFailedLoginAt: null,
-        lockoutUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.updateUser as jest.Mock).mockResolvedValue(undefined);
-      (securityLogRepository.createLog as jest.Mock).mockResolvedValue(
+      (securityLogRepository.createSecurityLog as jest.Mock).mockResolvedValue(
         undefined
       );
+      (userRepository.getUserByEmail as jest.Mock)
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce({ ...mockUser, failedLoginAttempts: 1 });
+      (
+        userRepository.incrementFailedLoginAttempts as jest.Mock
+      ).mockResolvedValue(undefined);
 
       await recordFailedLogin(mockEmail);
 
-      expect(userRepository.findByEmail).toHaveBeenCalledWith(mockEmail);
-      expect(userRepository.updateUser).toHaveBeenCalledWith(
-        mockUserId,
+      expect(securityLogRepository.createSecurityLog).toHaveBeenCalledWith(
         expect.objectContaining({
-          failedLoginAttempts: 1,
-          lastFailedLoginAt: expect.any(Date),
+          email: mockEmail,
+          eventType: SecurityEventType.LOGIN_FAILED,
+          success: false,
+          message: expect.any(String),
         })
       );
-      expect(securityLogRepository.createLog).toHaveBeenCalledWith({
-        userId: mockUserId,
-        eventType: SecurityEventType.LOGIN_FAILED,
-        details: expect.any(String),
-      });
+
+      expect(userRepository.getUserByEmail).toHaveBeenCalledWith(mockEmail);
+      expect(userRepository.incrementFailedLoginAttempts).toHaveBeenCalledWith(
+        mockUserId
+      );
     });
 
     it("應該在達到 5 次失敗後鎖定帳號", async () => {
@@ -66,41 +68,68 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 4,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.updateUser as jest.Mock).mockResolvedValue(undefined);
-      (securityLogRepository.createLog as jest.Mock).mockResolvedValue(
+      (securityLogRepository.createSecurityLog as jest.Mock).mockResolvedValue(
         undefined
       );
 
+      (userRepository.getUserByEmail as jest.Mock)
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce({ ...mockUser, failedLoginAttempts: 5 });
+      (
+        userRepository.incrementFailedLoginAttempts as jest.Mock
+      ).mockResolvedValue(undefined);
+      (userRepository.lockUser as jest.Mock).mockResolvedValue(undefined);
+
       await recordFailedLogin(mockEmail);
 
-      expect(userRepository.updateUser).toHaveBeenCalledWith(
+      expect(userRepository.lockUser).toHaveBeenCalledWith(
         mockUserId,
+        15 * 60 * 1000
+      );
+
+      expect(securityLogRepository.createSecurityLog).toHaveBeenNthCalledWith(
+        1,
         expect.objectContaining({
-          failedLoginAttempts: 5,
-          lockoutUntil: expect.any(Date),
+          email: mockEmail,
+          eventType: SecurityEventType.LOGIN_FAILED,
+          success: false,
         })
       );
-      expect(securityLogRepository.createLog).toHaveBeenCalledWith({
-        userId: mockUserId,
-        eventType: SecurityEventType.ACCOUNT_LOCKED,
-        details: expect.stringContaining("5"),
-      });
+      expect(securityLogRepository.createSecurityLog).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          userId: mockUserId,
+          email: mockEmail,
+          eventType: SecurityEventType.ACCOUNT_LOCKED,
+          success: true,
+        })
+      );
     });
 
     it("應該處理不存在的使用者", async () => {
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(null);
+      (securityLogRepository.createSecurityLog as jest.Mock).mockResolvedValue(
+        undefined
+      );
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(null);
 
       await recordFailedLogin(mockEmail);
 
-      expect(userRepository.updateUser).not.toHaveBeenCalled();
-      expect(securityLogRepository.createLog).not.toHaveBeenCalled();
+      // 即使使用者不存在，也會記錄安全日誌（email 維度）
+      expect(securityLogRepository.createSecurityLog).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: mockEmail,
+          eventType: SecurityEventType.LOGIN_FAILED,
+          success: false,
+        })
+      );
+      expect(
+        userRepository.incrementFailedLoginAttempts
+      ).not.toHaveBeenCalled();
+      expect(userRepository.lockUser).not.toHaveBeenCalled();
     });
   });
 
@@ -113,13 +142,11 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 2,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
 
       const isLocked = await isAccountLocked(mockEmail);
 
@@ -135,13 +162,12 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 5,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: futureDate,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        lockedUntil: futureDate.toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
 
       const isLocked = await isAccountLocked(mockEmail);
 
@@ -157,26 +183,28 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 5,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: pastDate,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        lockedUntil: pastDate.toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.updateUser as jest.Mock).mockResolvedValue(undefined);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.unlockUser as jest.Mock).mockResolvedValue(undefined);
+      (userRepository.resetFailedLoginAttempts as jest.Mock).mockResolvedValue(
+        undefined
+      );
 
       const isLocked = await isAccountLocked(mockEmail);
 
       expect(isLocked).toBe(false);
-      expect(userRepository.updateUser).toHaveBeenCalledWith(mockUserId, {
-        failedLoginAttempts: 0,
-        lockoutUntil: null,
-      });
+      expect(userRepository.unlockUser).toHaveBeenCalledWith(mockUserId);
+      expect(userRepository.resetFailedLoginAttempts).toHaveBeenCalledWith(
+        mockUserId
+      );
     });
 
     it("應該處理不存在的使用者", async () => {
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(null);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(null);
 
       const isLocked = await isAccountLocked(mockEmail);
 
@@ -193,30 +221,28 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 3,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.updateUser as jest.Mock).mockResolvedValue(undefined);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.resetFailedLoginAttempts as jest.Mock).mockResolvedValue(
+        undefined
+      );
 
       await clearFailedAttempts(mockEmail);
 
-      expect(userRepository.updateUser).toHaveBeenCalledWith(mockUserId, {
-        failedLoginAttempts: 0,
-        lastFailedLoginAt: null,
-        lockoutUntil: null,
-      });
+      expect(userRepository.resetFailedLoginAttempts).toHaveBeenCalledWith(
+        mockUserId
+      );
     });
 
     it("應該處理不存在的使用者", async () => {
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(null);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(null);
 
       await clearFailedAttempts(mockEmail);
 
-      expect(userRepository.updateUser).not.toHaveBeenCalled();
+      expect(userRepository.resetFailedLoginAttempts).not.toHaveBeenCalled();
     });
   });
 
@@ -229,13 +255,11 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 3,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(mockUser);
 
       const attempts = await getFailedAttempts(mockEmail);
 
@@ -243,7 +267,7 @@ describe("securityService", () => {
     });
 
     it("應該回傳 0 當使用者不存在", async () => {
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(null);
+      (userRepository.getUserByEmail as jest.Mock).mockResolvedValue(null);
 
       const attempts = await getFailedAttempts(mockEmail);
 
@@ -260,26 +284,27 @@ describe("securityService", () => {
         role: "user" as const,
         status: "active" as const,
         failedLoginAttempts: 4,
-        lastFailedLoginAt: new Date(),
-        lockoutUntil: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
-      (userRepository.findByEmail as jest.Mock).mockResolvedValue(mockUser);
-      (userRepository.updateUser as jest.Mock).mockResolvedValue(undefined);
+      (securityLogRepository.createSecurityLog as jest.Mock).mockResolvedValue(
+        undefined
+      );
+      (userRepository.getUserByEmail as jest.Mock)
+        .mockResolvedValueOnce(mockUser)
+        .mockResolvedValueOnce({ ...mockUser, failedLoginAttempts: 5 });
+      (
+        userRepository.incrementFailedLoginAttempts as jest.Mock
+      ).mockResolvedValue(undefined);
+      (userRepository.lockUser as jest.Mock).mockResolvedValue(undefined);
 
-      const beforeTime = Date.now();
       await recordFailedLogin(mockEmail);
-      const afterTime = Date.now();
 
-      const updateCall = (userRepository.updateUser as jest.Mock).mock.calls[0];
-      const lockoutTime = updateCall[1].lockoutUntil;
-      const lockoutDuration = lockoutTime.getTime() - beforeTime;
-
-      // 鎖定時間應該在 15 分鐘左右（考慮執行時間誤差）
-      expect(lockoutDuration).toBeGreaterThanOrEqual(15 * 60 * 1000 - 1000);
-      expect(lockoutDuration).toBeLessThanOrEqual(15 * 60 * 1000 + 1000);
+      expect(userRepository.lockUser).toHaveBeenCalledWith(
+        mockUserId,
+        15 * 60 * 1000
+      );
     });
   });
 });

@@ -125,8 +125,12 @@ export function LoginForm() {
         </label>
       </div>
 
-      <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? "登入中..." : "登入"}
+      <Button
+        type="submit"
+        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
+        disabled={isPending}
+      >
+        {isPending ? "登入中..." : "登入驗證"}
       </Button>
     </form>
   );

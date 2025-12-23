@@ -71,9 +71,9 @@
 
 ### 使用者故事 1 的實作
 
-- [ ] T030 [P] [US1] 在 actions/authActions.ts 實作 registerAction(formData)（註冊成功後建立 session、寫入 httpOnly cookie；回傳可用於 toast 的結果/錯誤碼與導向目的地）
-- [ ] T031 [P] [US1] 在 components/auth/RegisterForm.tsx 建立 RegisterForm 元件（成功/錯誤以 toast 呈現；成功後導向儀表板）
-- [ ] T032 [US1] 在 app/(auth)/register/page.tsx 建立註冊頁（串接 RegisterForm）
+- [x] T030 [P] [US1] 在 actions/authActions.ts 實作 registerAction(formData)（註冊成功後建立 session、寫入 httpOnly cookie；回傳可用於 toast 的結果/錯誤碼與導向目的地）
+- [x] T031 [P] [US1] 在 components/auth/RegisterForm.tsx 建立 RegisterForm 元件（成功/錯誤以 toast 呈現；成功後導向儀表板）
+- [x] T032 [US1] 在 app/(auth)/register/page.tsx 建立註冊頁（串接 RegisterForm）
 - [ ] T033 [US1] 在 infrastructure/repositories/userRepository.ts 實作使用者建立與 email 唯一性檢查
 - [ ] T034 [US1] 在 infrastructure/repositories/securityLogRepository.ts 增加註冊事件的安全日誌記錄
 
@@ -96,9 +96,9 @@
 
 ### 使用者故事 2 的實作
 
-- [ ] T039 [P] [US2] 在 actions/authActions.ts 實作 loginAction(formData)（支援 rememberMe；寫入 httpOnly cookie：勾選時為持久 cookie、未勾選時為 session cookie；回傳可用於 toast 的結果/錯誤碼）
-- [ ] T040 [P] [US2] 在 components/auth/LoginForm.tsx 建立 LoginForm 元件（加入「記住我」checkbox；成功/錯誤以 toast 呈現）
-- [ ] T041 [US2] 在 app/(auth)/login/page.tsx 建立登入頁（版型參考 designs/login-ui.png；讀取 reason/狀態並以 toast 呈現系統訊息）
+- [x] T039 [P] [US2] 在 actions/authActions.ts 實作 loginAction(formData)（支援 rememberMe；寫入 httpOnly cookie：勾選時為持久 cookie、未勾選時為 session cookie；回傳可用於 toast 的結果/錯誤碼）
+- [x] T040 [P] [US2] 在 components/auth/LoginForm.tsx 建立 LoginForm 元件（加入「記住我」checkbox；成功/錯誤以 toast 呈現）
+- [x] T041 [US2] 在 app/(auth)/login/page.tsx 建立登入頁（版型參考 designs/login-ui.png；讀取 reason/狀態並以 toast 呈現系統訊息）
 - [ ] T042 [US2] 在 services/securityService.ts 與 services/authService.ts 套用鎖定規則
 - [ ] T043 [US2] 透過 securityLogRepository 將登入成功/失敗事件寫入 data/security-logs.json
 
@@ -119,8 +119,8 @@
 
 ### 使用者故事 3 的實作
 
-- [ ] T046 [P] [US3] 在 actions/authActions.ts 實作 logoutAction()（清除 cookies、撤銷 session；回傳 toast 結果）
-- [ ] T047 [US3] 在 app/(protected)/dashboard/page.tsx 實作登出 UI（按鈕/呼叫；成功/錯誤 toast）
+- [x] T046 [P] [US3] 在 actions/authActions.ts 實作 logoutAction()（清除 cookies、撤銷 session；回傳 toast 結果）
+- [x] T047 [US3] 在 app/(protected)/dashboard/page.tsx 實作登出 UI（按鈕/呼叫；成功/錯誤 toast）
 - [ ] T048 [US3] 在 infrastructure/repositories/sessionRepository.ts 實作 session 撤銷的持久化
 - [ ] T049 [US3] 透過 securityLogRepository 將登出事件寫入 data/security-logs.json
 
@@ -141,9 +141,9 @@
 
 ### 使用者故事 4 的實作
 
-- [ ] T052 [P] [US4] 在 actions/userActions.ts 實作 getUserInfoAction()
-- [ ] T053 [P] [US4] 在 components/dashboard/UserInfo.tsx 建立儀表板使用者資訊卡片
-- [ ] T054 [US4] 在 app/(protected)/dashboard/page.tsx 實作儀表板頁（使用 getUserInfoAction）
+- [x] T052 [P] [US4] 在 actions/userActions.ts 實作 getUserInfoAction()
+- [x] T053 [P] [US4] 在 components/dashboard/UserInfo.tsx 建立儀表板使用者資訊卡片
+- [x] T054 [US4] 在 app/(protected)/dashboard/page.tsx 實作儀表板頁（使用 getUserInfoAction）
 
 **檢查點**：US4 完成且可獨立驗收
 

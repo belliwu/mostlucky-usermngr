@@ -12,11 +12,20 @@ export function RegisterForm() {
   const [isPending, startTransition] = useTransition();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const formData = new FormData(e.currentTarget);
+
+    if (password !== confirmPassword) {
+      showErrorToast({
+        title: "註冊失敗",
+        description: "密碼不一致，請重新確認",
+      });
+      return;
+    }
 
     startTransition(async () => {
       const result = await registerAction(formData);
@@ -84,8 +93,29 @@ export function RegisterForm() {
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? "註冊中..." : "註冊"}
+      <div className="space-y-2">
+        <label htmlFor="confirmPassword" className="text-sm font-medium">
+          確認密碼
+        </label>
+        <Input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          placeholder="請再次輸入密碼"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          disabled={isPending}
+          minLength={8}
+        />
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 text-white hover:from-cyan-600 hover:to-teal-600"
+        disabled={isPending}
+      >
+        {isPending ? "註冊中..." : "建立帳號"}
       </Button>
     </form>
   );

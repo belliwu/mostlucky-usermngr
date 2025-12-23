@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifySession } from "@/services/authService";
 
 /**
  * Next.js Middleware
- * 保護受保護路由，驗證 JWT token
+ * 保護受保護路由，檢查 JWT token 是否存在
+ * 注意：在 Edge Runtime 中不能使用 Node.js 模塊，所以只檢查 token 存在性
+ * 實際的 token 驗證在 Server Components/Actions 中進行
  */
 
-const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "auth_session";
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "session";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -28,33 +29,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 驗證 session
-  const sessionResult = await verifySession(token);
-
-  if (!sessionResult.valid) {
-    // Session 無效，導向登入頁
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("reason", "session_expired");
-    loginUrl.searchParams.set("redirect", pathname);
-
-    // 清除無效 cookie
-    const response = NextResponse.redirect(loginUrl);
-    response.cookies.delete(SESSION_COOKIE_NAME);
-
-    return response;
-  }
-
-  // 檢查 admin 路由的權限
-  if (pathname.startsWith("/admin")) {
-    if (sessionResult.user?.role !== "admin") {
-      // 沒有 admin 權限，導向 dashboard 並附帶錯誤訊息
-      const dashboardUrl = new URL("/dashboard", request.url);
-      dashboardUrl.searchParams.set("error", "permission_denied");
-      return NextResponse.redirect(dashboardUrl);
-    }
-  }
-
-  // 驗證通過，允許訪問
+  // Token 存在，允許訪問
+  // 實際的驗證會在 Server Component 中進行
   return NextResponse.next();
 }
 

@@ -3,7 +3,7 @@
  */
 
 export interface ValidationResult {
-  valid: boolean;
+  success: boolean;
   errors: string[];
 }
 
@@ -25,7 +25,7 @@ export function validateLoginData(
   }
 
   return {
-    valid: errors.length === 0,
+    success: errors.length === 0,
     errors,
   };
 }

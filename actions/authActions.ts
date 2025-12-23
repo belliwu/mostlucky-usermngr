@@ -1,14 +1,13 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import { register, login, logout } from "@/services/authService";
 
 /**
  * Server Actions for Authentication
  */
 
-const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "auth_session";
+const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "session";
 
 export interface ActionResult {
   success: boolean;

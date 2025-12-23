@@ -1,50 +1,177 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
 
-## Core Principles
+- 版本變更: 1.0.0 → 1.1.0
+- 修改原則:
+  - 完整測試（不可協商）→ 完整測試與驗證（不可協商）
+  - 程式碼可讀性與命名規範 → 可讀性、命名與必要文件
+  - 設計模式與模組關聯性 → 相依性邊界與保持簡單
+  - 安全性基本規範 → 安全性與隱私（含 RBAC 條件化）
+- 新增章節:
+  - 測試範圍定義（含 Next.js Server Actions / Route Handlers 的「API 邊界」說明）
+- 移除章節/規範:
+  - 強制 GOF 設計模式清單（改為可驗證的相依性規範）
+- Templates requiring updates:
+  - ✅ .specify/templates/plan-template.md（移除不存在的 commands 路徑參考）
+  - ✅ .specify/templates/tasks-template.md（測試要求與憲章一致）
+  - ✅ .specify/templates/spec-template.md（無需變更）
+- Deferred / TODO: 無
+-->
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+# 使用者管理系統專案憲章
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+## 核心原則
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### 一、完整測試與驗證（不可協商）
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**必須遵守的規範**：
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+- 所有重要邏輯必須有單元測試（Unit Tests）
+- 所有「系統邊界」必須有整合測試（Integration Tests）
+- 關鍵使用者旅程必須有端對端測試（E2E Tests）
+- 測試覆蓋率必須達到 80% 以上（至少 lines 與 branches；如需例外，必須在 plan.md 記錄原因與補救措施）
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+**測試範圍定義（本專案）**：
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- 「API 邊界」包含 Next.js Route Handlers（`app/api/**/route.ts`）以及 Server Actions（`"use server"`）
+- 「API 測試」在本專案等同於「邊界整合測試」：驗證請求/輸入 → 驗證 → 授權 → 狀態變更/持久化 → 回傳/錯誤
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**建議做法（非硬性）**：
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- 優先採用紅燈-綠燈-重構循環（Red-Green-Refactor）以降低回歸風險
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+**原理說明**：完整的測試確保系統穩定性，降低錯誤風險，並提供安全的重構環境。
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### 二、可讀性、命名與必要文件
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**必須遵守的規範**：
+
+- 函式與變數命名必須具描述性，避免縮寫與模糊名稱
+- 命名風格必須在整個專案中保持一致
+- 任何「非直覺」的商業邏輯或安全邏輯必須用中文或英文說明（註解或文件皆可）
+- 對外公開的介面（export 的主要函式、重要型別、可重用元件）必須提供可用的說明（JSDoc/Markdown 其一）
+
+**原理說明**：自我說明的程式碼加上必要的文件，能降低維護成本並提升協作效率。
+
+### 三、模組化設計與單一職責原則（SRP）
+
+**必須遵守的規範**：
+
+- 每個模組/檔案必須有清楚且單一的責任範圍
+- 每個函式應只做一件事；若牽涉多步驟，必須拆分為可測試的子函式
+- 若單一檔案/類別/函式變得過大或難以測試，必須拆分；如因框架限制無法拆分，必須在 plan.md 記錄原因
+
+**原理說明**：單一職責讓程式碼更易於測試、維護與重用。
+
+### 四、相依性邊界與保持簡單
+
+**必須遵守的規範**：
+
+- 模組介面必須清楚定義，呼叫端不可依賴內部實作細節
+- 避免緊耦合：可被替換的相依物件必須以介面或注入方式提供（相依性注入）
+- 新增抽象（例如工廠/策略/事件匯流排）前，必須先證明能降低耦合或提升可測試性
+
+**原理說明**：可驗證的相依性邊界比「必用某種模式」更能降低長期複雜度。
+
+### 五、安全性與隱私（不可協商）
+
+**必須遵守的規範**：
+
+- 密碼必須以強雜湊儲存（bcrypt/argon2；若使用 bcrypt，建議採用 `bcryptjs`）
+- 所有受保護的系統邊界（Route Handlers / Server Actions / middleware）必須驗證使用者身份
+- 若存在「不同角色/權限」的行為差異，必須實作基於角色的權限控制（RBAC）；若無此需求，必須在 spec.md 明確宣告不在範圍內
+- 任何輸入必須驗證與正規化，避免注入攻擊與錯誤資料進入持久層
+- 敏感資訊不得出現在日誌或錯誤訊息中
+- 必須記錄安全相關事件（例如登入失敗、鎖定、登出、權限變更）且需可稽核
+
+**原理說明**：使用者管理系統處理敏感資料，必須在設計階段就把安全性當成預設要求。
+
+## 程式碼品質標準
+
+**模組大小限制（指引）**：
+
+- 以可讀性與可測試性為主；若檔案/函式過大導致難以測試或理解，必須拆分
+
+**複雜度控制**：
+
+- 避免深層巢狀（超過 3 層）
+- 循環複雜度（Cyclomatic Complexity）保持在 10 以下
+- 使用早期返回（Early Return）簡化邏輯
+
+**文件要求**：
+
+- 對外公開的主要函式必須包含用途、參數與回傳值的說明
+- 主要子模組（例如 `app/`、`lib/`、`server/` 等）必須有可找到的用途說明（README 或等效文件）
+- 重要的業務邏輯必須附上說明文件（必要時才需要流程圖）
+
+**程式碼審查**：
+
+- 所有程式碼變更必須經過至少一位其他開發者審查
+- 審查時必須確認符合本憲法所有原則
+- 發現不符合原則的程式碼必須要求修改
+
+## 安全性要求
+
+**身份驗證**：
+
+- 密碼長度至少 8 個字元
+- 密碼必須使用強雜湊算法儲存（bcrypt 或 argon2）
+- 實作登入失敗次數限制（防止暴力破解）
+- 支援密碼重設機制
+
+**權限管理**：
+
+- 若存在不同角色/權限行為，必須實作基於角色的存取控制（RBAC）
+- 明確定義不同角色的權限範圍（或宣告無角色差異）
+- 最小權限原則：只給予必要的權限
+- 權限變更必須記錄稽核日誌
+
+**資料隱私**：
+
+- 敏感個人資料必須加密儲存
+- API 回應中不得包含敏感資訊（如密碼雜湊）
+- 實作資料遮罩機制（如顯示部分電話號碼）
+- 遵守資料保護法規（GDPR、個資法等）
+
+**日誌與監控**：
+
+- 記錄所有身份驗證事件（成功與失敗）
+- 記錄權限變更與敏感操作
+- 日誌中不得包含密碼或其他敏感資料
+- 定期審查安全日誌
+
+## 治理規則
+
+**憲法效力**：
+
+- 本憲法優先於所有其他開發慣例與指引
+- 所有程式碼提交（PR）必須確認符合憲法原則
+- 違反憲法原則的程式碼不得合併
+
+**修訂程序**：
+
+- 憲法修訂必須經過團隊討論與共識
+- 修訂內容必須記錄原因與影響範圍
+- 重大修訂必須包含遷移計畫
+- 修訂後版本號必須更新
+
+**版本控制**：
+
+- 遵循語義化版本（Semantic Versioning）：主版本.次版本.修訂版本
+- 主版本：不相容的重大變更
+- 次版本：新增功能但保持相容
+- 修訂版本：錯誤修正與文件更新
+
+**例外處理**：
+
+- 如需違反憲法原則，必須提出充分理由
+- 例外情況必須記錄在案並設定時限
+- 技術債務必須排入後續開發計畫
+
+**品質門檻**：
+
+- 所有測試必須通過才能合併
+- 程式碼審查必須確認符合憲法
+- 自動化檢查必須包含程式碼風格與複雜度檢查
+
+**Version**: 1.1.0 | **Ratified**: 2025-12-05 | **Last Amended**: 2025-12-23

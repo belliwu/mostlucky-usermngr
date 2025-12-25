@@ -1,0 +1,12 @@
+[
+  {
+    "id": "310b8a89-dda8-4781-9e81-02c064aa2122",
+    "email": "protect-id@example.com",
+    "passwordHash": "$2a$10$DqxTSBJ/wEwYESORR/C3mODMGivxUmJHyzLRwRbjvwm4W.sM4X0eq",
+    "role": "user",
+    "status": "active",
+    "createdAt": "2025-12-25T01:06:06.075Z",
+    "updatedAt": "2025-12-25T01:06:06.077Z",
+    "failedLoginAttempts": 0
+  }
+]

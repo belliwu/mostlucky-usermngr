@@ -274,8 +274,10 @@ export async function logout(
 ): Promise<LogoutResult> {
   try {
     // 驗證 token
-    const payload = verifyToken(token);
-    if (!payload) {
+    let payload: JwtPayload;
+    try {
+      payload = verifyToken(token);
+    } catch {
       return {
         success: false,
         error: "Invalid token",
@@ -317,8 +319,10 @@ export async function verifySession(
 ): Promise<VerifySessionResult> {
   try {
     // 驗證 token
-    const payload = verifyToken(token);
-    if (!payload) {
+    let payload: JwtPayload;
+    try {
+      payload = verifyToken(token);
+    } catch {
       return {
         valid: false,
         error: "Invalid or expired token",

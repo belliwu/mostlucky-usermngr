@@ -40,12 +40,6 @@ export async function getUserInfoAction(): Promise<UserInfoResult> {
 
     // 驗證 token
     const payload = verifyToken(token);
-    if (!payload) {
-      return {
-        success: false,
-        error: "Invalid token",
-      };
-    }
 
     // 取得使用者資訊
     const result = await getUserInfo(payload.userId);

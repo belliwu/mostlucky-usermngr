@@ -6,8 +6,10 @@ import jwt, { type SignOptions } from "jsonwebtoken";
 
 const JWT_SECRET =
   process.env.JWT_SECRET || "dev-secret-key-DO-NOT-USE-IN-PRODUCTION";
-const ACCESS_TOKEN_EXPIRY = process.env.JWT_ACCESS_TOKEN_EXPIRY || "30m";
-const REFRESH_TOKEN_EXPIRY = process.env.JWT_REFRESH_TOKEN_EXPIRY || "7d";
+const ACCESS_TOKEN_EXPIRY = (process.env.JWT_ACCESS_TOKEN_EXPIRY ||
+  "30m") as SignOptions["expiresIn"];
+const REFRESH_TOKEN_EXPIRY = (process.env.JWT_REFRESH_TOKEN_EXPIRY ||
+  "7d") as SignOptions["expiresIn"];
 
 export interface JwtPayload {
   userId: string;
@@ -15,6 +17,17 @@ export interface JwtPayload {
   role: string;
   iat?: number;
   exp?: number;
+}
+
+function isJwtPayload(decoded: unknown): decoded is JwtPayload {
+  if (!decoded || typeof decoded !== "object") return false;
+
+  const maybe = decoded as Record<string, unknown>;
+  return (
+    typeof maybe.userId === "string" &&
+    typeof maybe.email === "string" &&
+    typeof maybe.role === "string"
+  );
 }
 
 /**
@@ -28,7 +41,7 @@ export function generateToken(
 ): string {
   const payload = { userId, email, role };
   const options: SignOptions = {
-    expiresIn: expiresIn || (ACCESS_TOKEN_EXPIRY as string),
+    expiresIn: (expiresIn || ACCESS_TOKEN_EXPIRY) as SignOptions["expiresIn"],
   };
   return jwt.sign(payload, JWT_SECRET, options);
 }
@@ -38,7 +51,7 @@ export function generateToken(
  */
 export function generateAccessToken(payload: JwtPayload): string {
   const options: SignOptions = {
-    expiresIn: ACCESS_TOKEN_EXPIRY as string,
+    expiresIn: ACCESS_TOKEN_EXPIRY,
   };
   return jwt.sign(payload, JWT_SECRET, options);
 }
@@ -48,7 +61,7 @@ export function generateAccessToken(payload: JwtPayload): string {
  */
 export function generateRefreshToken(payload: JwtPayload): string {
   const options: SignOptions = {
-    expiresIn: REFRESH_TOKEN_EXPIRY as string,
+    expiresIn: REFRESH_TOKEN_EXPIRY,
   };
   return jwt.sign(payload, JWT_SECRET, options);
 }
@@ -56,13 +69,16 @@ export function generateRefreshToken(payload: JwtPayload): string {
 /**
  * 驗證 token
  */
-export function verifyToken(token: string): string | object {
+export function verifyToken(token: string): JwtPayload {
   if (!token || token.trim() === "") {
     throw new Error("Invalid token");
   }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (!isJwtPayload(decoded)) {
+      throw new Error("Invalid token format");
+    }
     return decoded;
   } catch (error) {
     throw error;

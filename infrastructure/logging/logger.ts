@@ -59,11 +59,15 @@ async function log(
   }
 
   // 寫入檔案
-  await writeToFile(LOG_CONFIG.logFile, formatted);
+  if (LOG_CONFIG.fileOutput) {
+    await writeToFile(LOG_CONFIG.logFile, formatted);
+  }
 
   // 錯誤日誌另外寫入錯誤檔案
   if (level === LogLevel.ERROR) {
-    await writeToFile(LOG_CONFIG.errorLogFile, formatted);
+    if (LOG_CONFIG.fileOutput) {
+      await writeToFile(LOG_CONFIG.errorLogFile, formatted);
+    }
   }
 }
 

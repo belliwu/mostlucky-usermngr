@@ -9,10 +9,14 @@ import path from "path";
  */
 
 const isVercel = process.env.VERCEL === "1";
+// Vercel 環境變數在不同階段/平台可能不是嚴格等於 "1"，用 truthy 判斷更穩
+const isVercelEnv =
+  Boolean(process.env.VERCEL) || Boolean(process.env.VERCEL_ENV);
 
-const baseDir = isVercel
-  ? path.join(os.tmpdir(), "mostlucky-usermngr")
-  : process.cwd();
+const baseDir =
+  isVercel || isVercelEnv
+    ? path.join(os.tmpdir(), "mostlucky-usermngr")
+    : process.cwd();
 
 export const DB_CONFIG = {
   dataDir: isVercel ? path.join(baseDir, "data") : path.join(baseDir, "data"),

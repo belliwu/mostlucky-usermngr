@@ -45,6 +45,22 @@ export async function getUserInfoAction(): Promise<UserInfoResult> {
     const result = await getUserInfo(payload.userId);
 
     if (!result.success || !result.user) {
+      // Demo/Vercel 環境：Serverless instance 之間可能不共享暫存檔案，
+      // 導致剛註冊/登入的使用者在下一個請求查不到。
+      // 若 token 本身有效，改用 token payload 回傳最小可用的使用者資訊供儀表板展示。
+      if (process.env.VERCEL === "1" && payload?.userId && payload?.email) {
+        return {
+          success: true,
+          user: {
+            id: payload.userId,
+            email: payload.email,
+            role: payload.role,
+            status: "active",
+            createdAt: new Date().toISOString(),
+          },
+        };
+      }
+
       return {
         success: false,
         error: result.error || "Failed to get user info",

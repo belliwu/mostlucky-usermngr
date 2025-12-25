@@ -1,12 +1,12 @@
 [
   {
-    "id": "fbd6ae06-db5f-4823-8226-b8d5bdf73092",
+    "id": "3a765775-fa4b-4acc-9158-2d373a158f7b",
     "email": "protect-id@example.com",
-    "passwordHash": "$2a$10$G8qcXPnkXPWnQe4gnJNv4.r0LuRlqXWXPmHWk4LkbS6DCUzzbrb4C",
+    "passwordHash": "$2a$10$Dz8mi4MS6xOHkpMVdhKAMOH33ka8ZfdsG4x9hmpsiunf/Co.u7ADK",
     "role": "user",
     "status": "active",
-    "createdAt": "2025-12-23T14:45:49.491Z",
-    "updatedAt": "2025-12-23T14:45:49.493Z",
+    "createdAt": "2025-12-25T01:35:14.515Z",
+    "updatedAt": "2025-12-25T01:35:14.518Z",
     "failedLoginAttempts": 0
   }
 ]

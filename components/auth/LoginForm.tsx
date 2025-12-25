@@ -56,7 +56,9 @@ export function LoginForm() {
         // 導向目標頁面或儀表板
         const redirect =
           searchParams.get("redirect") || result.redirectTo || "/dashboard";
-        router.push(redirect);
+        // 在 production/Vercel 下避免使用到未登入時的預取快取，確保帶著新 cookie 重新抓取資料
+        router.replace(redirect);
+        router.refresh();
       } else {
         // 顯示錯誤 toast
         if (result.messageCode && result.messageCode in TOAST_MESSAGES) {

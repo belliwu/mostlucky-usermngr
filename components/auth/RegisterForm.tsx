@@ -40,7 +40,9 @@ export function RegisterForm() {
 
         // 導向儀表板
         if (result.redirectTo) {
-          router.push(result.redirectTo);
+          // 在 production/Vercel 下避免使用到未登入時的預取快取，確保帶著新 cookie 重新抓取資料
+          router.replace(result.redirectTo);
+          router.refresh();
         }
       } else {
         // 顯示錯誤 toast
